@@ -27,6 +27,14 @@ public class AccountsController : ControllerBase
 
         var account = new Account(request.Owner, request.Cpf, request.InitialDeposit);
 
+        //verificar se ja existe uma conta existente com o mesmo CPF
+        var existingAccount = await _context.Accounts.FirstOrDefaultAsync(a =>
+            a.Cpf == request.Cpf
+        );
+        if (existingAccount != null)
+            return BadRequest("Já existe uma conta vinculada a este CPF.");
+
+        // SE NAO EXISTIR, CRIA A CONTA
         _context.Accounts.Add(account);
         await _context.SaveChangesAsync();
 
