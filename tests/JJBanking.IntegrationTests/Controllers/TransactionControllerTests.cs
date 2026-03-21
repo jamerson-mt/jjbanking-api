@@ -90,6 +90,42 @@ public class TransactionControllerTests : IClassFixture<WebApplicationFactory<Pr
         content.Description.Should().Be(withdrawRequest.Description); // a descrição do saque deve ser igual à que foi enviada na requisição
     }
 
+    // 🚀 MELHORIA: Testando múltiplos cenários inválidos (Zero e Negativo) com Theory
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-10.50)]
+    public async Task Withdraw_WhenAmountIsInvalid_ShouldReturnBadRequest(decimal invalidAmount)
+    {
+        // Arrange: Criar a conta necessária para o teste
+        var accountRequest = new CreatedAccountResponse(
+            "Jamerson Teste",
+            GenerateRandomCpf(),
+            100.00m
+        );
+
+        var accountResponseMsg = await _client.PostAsJsonAsync("/api/accounts", accountRequest);
+        accountResponseMsg.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var accountData = await accountResponseMsg.Content.ReadFromJsonAsync<AccountResponse>();
+        accountData.Should().NotBeNull(); // Segurança: Garante que temos os dados antes de prosseguir
+
+        var withdrawRequest = new TransationWithdrawRequest(
+            accountData!.Id,
+            invalidAmount,
+            "Tentativa de saque inválido"
+        );
+
+        // Act: Tenta realizar o saque
+        var response = await _client.PostAsJsonAsync("/api/transaction/withdraw", withdrawRequest);
+
+        // Assert: Valida se a API barrou a transação
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        // OPCIONAL: Validar se a mensagem de erro retornada é a esperada
+        var errorContent = await response.Content.ReadAsStringAsync();
+        errorContent.Should().Contain("positivo");
+    }
+
     private string GenerateRandomCpf() =>
         Random.Shared.Next(100000000, 999999999).ToString() + "00";
 }
