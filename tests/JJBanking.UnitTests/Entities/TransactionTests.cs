@@ -87,4 +87,22 @@ public class TransactionTests
             .Throw<ArgumentException>() // Espera que uma ArgumentException seja lançada
             .WithMessage("O valor da transação não pode ser negativo. (Parameter 'amount')");
     }
+    // tem que ter um recebbedor    
+    [Fact]
+    public void Constructor_WhenAccountIdIsEmpty_ShouldThrowException()
+    {
+        // Arrange
+        var accountId = Guid.Empty; // ID de conta vazio
+        var amount = 100.00m;
+        var type = TransactionType.Credit;
+        var description = "Teste de conta vazia";
+
+        // Act
+        Action act = () => new Transaction(accountId, amount, type, description);
+
+        // Assert
+        act.Should()
+            .Throw<ArgumentException>() // Espera que uma ArgumentException seja lançada
+            .WithMessage("O Destinatário da transação é obrigatório. (Parameter 'accountId')");
+    }
 }

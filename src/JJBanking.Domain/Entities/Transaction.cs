@@ -45,6 +45,9 @@ public class Transaction
                 "A descrição é obrigatória e deve ter no máximo 250 caracteres."
             );
 
+        if (accountId == Guid.Empty)
+            throw new ArgumentException("O Destinatário da transação é obrigatório. (Parameter 'accountId')");
+
         Id = Guid.NewGuid();
         AccountId = accountId;
         Amount = amount;
