@@ -58,9 +58,9 @@ Para garantir a confiabilidade bancária, o projeto conta com:
 ---
 ## 🛠️ Guia de Endpoints (v1)
 
-A API utiliza **Swagger/OpenAPI** para documentação. Ao rodar o projeto, acesse `/swagger` para testar os endpoints interativamente.
+A API utiliza **Swagger/OpenAPI** para documentação. Ao rodar o projeto, acesse `http://localhost:5000/swagger` para testar os endpoints interativamente.
 
-### Rota do Swagger: `http://localhost:5000/swagger`
+### Rota do Swagger: 
 
 
 ### 👤 Gerenciamento de Contas (`/api/accounts`)
