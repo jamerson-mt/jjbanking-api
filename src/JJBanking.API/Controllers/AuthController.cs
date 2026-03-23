@@ -27,13 +27,13 @@ public class AuthController : ControllerBase
     {
         // O Controller apenas valida se o modelo é válido e chama o Service
         if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+            return BadRequest(ModelState); // 
 
         try
         {
             // O Service é quem tem a lógica de negócio, o Controller só orquestra
             var result = await _authService.RegisterAsync(request);
-            return Ok(result); // 200 OK
+            return CreatedAtAction(nameof(Register), new { id = result.AccountNumber }, result); // 201 Created com localização do recurso
         }
         catch (Exception ex)
         {

@@ -9,9 +9,24 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- BANCO DE DADOS ---
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<BankDbContext>(options => options.UseNpgsql(connectionString));
+// --- BANCO DE DADOS (Configuração Condicional) ---
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<BankDbContext>(options =>
+    {
+        options.UseInMemoryDatabase("TestDb");
+        options.ConfigureWarnings(x =>
+            x.Ignore(
+                Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning
+            )
+        );
+    });
+}
+else
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    builder.Services.AddDbContext<BankDbContext>(options => options.UseNpgsql(connectionString));
+}
 
 // --- IDENTITY (Configuração Essencial) ---
 builder
@@ -23,6 +38,21 @@ builder
     })
     .AddEntityFrameworkStores<BankDbContext>()
     .AddDefaultTokenProviders();
+
+// --- CONFIGURAÇÃO DE CORS ---
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "AllowLocalhost",
+        policy =>
+        {
+            policy
+                .AllowAnyOrigin() // Em localhost, permitir qualquer origem facilita o dev
+                .AllowAnyHeader() // Permite qualquer header, útil para tokens e custom headers do React Native
+                .AllowAnyMethod(); // Permite qualquer método HTTP (GET, POST, PUT, DELETE, etc.)
+        }
+    );
+});
 
 // --- SERVIÇOS ---
 builder.Services.AddControllers();
@@ -62,6 +92,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+app.UseCors("AllowLocalhost");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
