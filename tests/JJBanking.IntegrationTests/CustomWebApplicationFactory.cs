@@ -12,16 +12,41 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // Define o ambiente como Testing para cair no IF do Program.cs
-        builder.UseEnvironment("Testing");
+        builder.UseEnvironment("Development");
 
-        builder.ConfigureServices(services =>
-        {
-            // Garante que o banco seja criado
-            var sp = services.BuildServiceProvider();
-            using var scope = sp.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<BankDbContext>();
-            db.Database.EnsureCreated();
-        });
+        // builder.ConfigureServices(services =>
+        // {
+        //     // 1. Remova qualquer registro prévio do DbContext para evitar conflitos
+        //     var descriptor = services.SingleOrDefault(d =>
+        //         d.ServiceType == typeof(DbContextOptions<BankDbContext>)
+        //     );
+        //     if (descriptor != null)
+        //         services.Remove(descriptor);
+
+        //     // 2. Adicione o banco em memória com um nome ÚNICO por execução
+        //     // Isso garante que cada teste comece com o banco zerado
+        //     services.AddDbContext<BankDbContext>(options =>
+        //     {
+        //         options.UseInMemoryDatabase("JJBankingTestDb_" + Guid.NewGuid().ToString());
+        //         options.ConfigureWarnings(x =>
+        //             x.Ignore(
+        //                 Microsoft
+        //                     .EntityFrameworkCore
+        //                     .Diagnostics
+        //                     .InMemoryEventId
+        //                     .TransactionIgnoredWarning
+        //             )
+        //         );
+        //     });
+
+        //     // 3. Inicialização do Banco de Dados
+        //     var sp = services.BuildServiceProvider();
+        //     using var scope = sp.CreateScope();
+        //     var scopedServices = scope.ServiceProvider;
+        //     var db = scopedServices.GetRequiredService<BankDbContext>();
+
+        //     db.Database.EnsureDeleted(); // Limpa resquícios
+        //     db.Database.EnsureCreated(); // Cria a estrutura
+        // });
     }
 }

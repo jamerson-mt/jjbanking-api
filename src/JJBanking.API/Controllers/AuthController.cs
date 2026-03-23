@@ -27,7 +27,7 @@ public class AuthController : ControllerBase
     {
         // O Controller apenas valida se o modelo é válido e chama o Service
         if (!ModelState.IsValid)
-            return BadRequest(ModelState); // 
+            return BadRequest(ModelState); //
 
         try
         {

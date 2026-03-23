@@ -1,3 +1,4 @@
+using JJBanking.API.Utils;
 using JJBanking.Domain.DTOs;
 using JJBanking.Domain.Entities;
 using JJBanking.Domain.Interfaces;
@@ -31,6 +32,12 @@ public class AuthService : IAuthService
                 FullName = request.FullName,
                 Cpf = request.Cpf,
             };
+
+            // validation Password
+            if (!PasswordValidator.IsStrong(request.Password))
+            {
+                throw new Exception("Senha não cumpre os requisitos de complexidade");
+            }
 
             //valida CPF (formato e quantidade de dígitos)
             if (!IsValidCpf(user.Cpf))
