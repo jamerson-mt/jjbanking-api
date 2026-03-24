@@ -22,9 +22,12 @@ public class Transfer
     public Account DestinationAccount { get; private set; } = null!;
 
     [Required]
+    [Column(TypeName = "decimal(8,2)")]
     public decimal Amount { get; private set; }
 
     public DateTime CreatedAt { get; private set; }
+
+    [MaxLength(255)]
     public string? Description { get; private set; } = string.Empty;
 
     // Construtor obrigatório para o Entity Framework
@@ -40,7 +43,9 @@ public class Transfer
     {
         // Regras de Negócio (Guard Clauses)
         if (originAccountId == destinationAccountId)
-            throw new ArgumentException("A conta de origem não pode ser igual à de destino.");
+            throw new InvalidOperationException(
+                "A conta de origem não pode ser igual à de destino."
+            );
 
         if (amount <= 0)
             throw new ArgumentException("O valor da transferência deve ser maior que zero.");
