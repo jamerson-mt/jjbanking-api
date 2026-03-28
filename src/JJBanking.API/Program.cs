@@ -9,13 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- BANCO DE DADOS (Ajustado para SQLite) ---
+// --- BANCO DE DADOS ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-// IMPORTANTE: Trocar .UseNpgsql por .UseSqlite
 builder.Services.AddDbContext<BankDbContext>(options => options.UseSqlite(connectionString));
 
-// --- IDENTITY (Permanece igual) ---
+// --- IDENTITY ---
 builder
     .Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     {
@@ -26,11 +24,11 @@ builder
     .AddEntityFrameworkStores<BankDbContext>()
     .AddDefaultTokenProviders();
 
-// --- CONFIGURAÇÃO DE CORS ---
+// --- CONFIGURAÇÃO DE CORS (AJUSTADA) ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
-        "AllowLocalhost",
+        "ProductionPolicy",
         policy =>
         {
             policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
@@ -41,9 +39,7 @@ builder.Services.AddCors(options =>
 // --- SERVIÇOS ---
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{ /* ... sua config de swagger ... */
-});
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -56,7 +52,6 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        // Trecho extra para garantir que a pasta /app/data exista antes de criar o banco
         var connString = builder.Configuration.GetConnectionString("DefaultConnection");
         if (!string.IsNullOrEmpty(connString) && connString.Contains("Data Source="))
         {
@@ -74,18 +69,26 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ocorreu um erro ao aplicar as migrations.");
+        logger.LogError(ex, "Erro nas migrations.");
     }
 }
 
-// --- PIPELINE ---
+// --- PIPELINE DE MIDDLEWARE (ORDEM IMPORTANTE) ---
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// app.UseHttpsRedirection(); // Dica: Em VPS com Reverse Proxy (Nginx), às vezes é melhor desativar isso se o Nginx já cuida do SSL.
-app.UseCors("AllowLocalhost");
+// 1. Roteamento deve vir primeiro
+app.UseRouting();
+
+// 2. CORS deve vir após o Routing e ANTES da Autenticação
+app.UseCors("ProductionPolicy");
+
+// 3. Segurança
 app.UseAuthentication();
 app.UseAuthorization();
+
+// 4. Endpoints
 app.MapControllers();
 
 app.Run();
